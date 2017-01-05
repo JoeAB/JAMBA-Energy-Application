@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report5_ack"%>
+<%@page language="PL/SQL"%>
+<%@plsql parameter="b_date" default="null"%>
+<%@plsql parameter="e_date" default="null"%>
+<%@plsql parameter="account_type_text"%>
+<%@plsql parameter="formsbutton1" default="null"%>
+
+<%!
+u_email sp_user.user_email%type;
+utotal number := 0;
+ptotal number := 0;
+pkwh number := 0;
+fname sp_user.first_name%type;
+lname sp_user.last_name%type;
+%>
+
+<%
+SELECT pricekwh
+INTO pkwh
+from PRICE;
+%>
+
+
+<%! cursor cur is SELECT su.user_email, su.first_name, su.last_name, usertotals.total, usertotals.total * pkwh
+FROM sp_user su
+Inner join
+  (SELECT sp.user_id, sptotal.total
+  FROM smart_plug sp
+  Inner join
+    (SELECT smart_plug_id, max(total_energy_output) - min(total_energy_output) as total
+    FROM usage
+    WHERE to_date(b_date) <= date_time
+    AND to_date(e_date) >= date_time
+    group by smart_plug_id) sptotal
+  on sp.smart_plug_id = sptotal.smart_plug_id) userTotals
+on su.user_id = userTotals.user_id
+order by usertotals.total desc;
+%>
+<table border = "1">
+<tr><td>User e-mail</td><td>Name</td><td>Total Wattage</td><td>Total</td></tr>
+<%
+open cur;
+Loop
+fetch cur into u_email, fname, lname, utotal, ptotal;
+exit when cur%notfound;
+%>
+<tr><td><%=u_email%></td><td><%=fname%>  <%=lname%></td><td><%=utotal%></td><td>$<%=Round(ptotal, 2)%></td></tr>
+<%end loop;%>
+</table>
+<%close cur;%>
+
+<%! cursor greencur is
+SELECT * from (SELECT su.user_email, su.first_name, su.last_name, usertotals.total, usertotals.total * pkwh
+FROM sp_user su
+Inner join
+  (SELECT sp.user_id, sptotal.total
+  FROM smart_plug sp
+  Inner join
+    (SELECT smart_plug_id, max(total_energy_output) - min(total_energy_output) as total
+    FROM usage
+    WHERE to_date(b_date) <= date_time
+    AND to_date(e_date) >= date_time
+    group by smart_plug_id) sptotal
+  on sp.smart_plug_id = sptotal.smart_plug_id) userTotals
+on su.user_id = userTotals.user_id
+order by usertotals.total asc)
+Where rownum <= 3;
+%>
+<p>Greenest Users</p>
+<table border = "1" style="border:2px solid green">
+<tr><td>User e-mail</td><td>Name</td><td>Total Wattage</td><td>Total</td></tr>
+<%
+open greencur;
+Loop
+fetch greencur into u_email, fname, lname, utotal, ptotal;
+exit when greencur%notfound;
+%>
+<tr><td><%=u_email%></td><td><%=fname%>  <%=lname%></td><td><%=utotal%></td><td>$<%=Round(ptotal, 2)%></td></tr>
+<%end loop;%>
+</table>
+<%close greencur;%>
+
+
+<%! cursor redcur is
+SELECT * from (SELECT su.user_email, su.first_name, su.last_name, usertotals.total, usertotals.total * pkwh
+FROM sp_user su
+Inner join
+  (SELECT sp.user_id, sptotal.total
+  FROM smart_plug sp
+  Inner join
+    (SELECT smart_plug_id, max(total_energy_output) - min(total_energy_output) as total
+    FROM usage
+    WHERE to_date(b_date) <= date_time
+    AND to_date(e_date) >= date_time
+    group by smart_plug_id) sptotal
+  on sp.smart_plug_id = sptotal.smart_plug_id) userTotals
+on su.user_id = userTotals.user_id
+order by usertotals.total desc)
+Where rownum <= 3;
+%>
+<p>Reddest Users</p>
+<table border = "1" style="border:2px solid red">
+<tr><td>User e-mail</td><td>Name</td><td>Total Wattage</td><td>Total</td></tr>
+<%
+open redcur;
+Loop
+fetch redcur into u_email, fname, lname, utotal, ptotal;
+exit when redcur%notfound;
+%>
+<tr><td><%=u_email%></td><td><%=fname%>  <%=lname%></td><td><%=utotal%></td><td>$<%=Round(ptotal, 2)%></td></tr>
+<%end loop;%>
+</table>
+<%close redcur;%>
+
+<%exception when others then %>
+<%=sqlerrm%>
+</div>
+</div>
+</body>
+</html>

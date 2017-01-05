@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language= "PL/SQL"%>
+<%@plsql procedure= "ask_security_question"%>
+<%@plsql parameter="sp_user_id_text" default="null"%>
+<%@plsql parameter="formsbutton1" default="null"%>
+<%! quest_display sp_user.sec_question%Type; 
+    accessCount sp_user.Accessibility_counter%Type; %>
+<head>
+</head>
+<% select sec_question,Accessibility_counter into quest_display, accessCount from sp_user
+where user_id = sp_user_id_text;
+%>
+
+
+<% if accessCount >1 then %>
+	<p>Your account has been locked. You must contact an administrator to unlock.</p>
+<%else %>
+	<p><%=quest_display %><br />
+		<form method="POST">
+			<input type="hidden" id="sp_u" name="sp_user_id_text" value="<%=sp_user_id_text%>"/>
+			<input type="text" id="answer" name="quest_answer_text"  />
+			<input type="button" name="formsbutton1" value="Submit Answer" onClick="checkQuest();"/>
+		</form>
+		<span id="validate"> </span>
+	</p>
+<% end if; %>
+<!-- End Page Content -->
+
+</body>
+</html>

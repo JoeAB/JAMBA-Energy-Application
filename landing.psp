@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language= "PL/SQL"%>
+<%@plsql procedure= "landing"%>
+<%@plsql parameter="account_type_text" default="null"%> 
+<%@plsql parameter="formsbutton1" default="null"%>
+
+
+<head>
+<title> Main Menu</title>
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: white;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+.myBody {
+	padding-top:10px;
+	padding-left:20px;
+}
+</style>
+</head>
+<div class="marBorder">
+
+	<div class="head" align="center">
+	<p align=right><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.startPage">Logout</a>
+	<p><h1>Main Menu</h1></p>
+
+		<table align="center">
+		<% if account_type_text = 'Manager' then %>
+		<tr>
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.create_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Create Accounts"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.system_setup">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="System Set Up"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.unlock_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Unlock User Accounts"/>
+				</form>
+			<td align="center">
+		
+		<% end if; %>
+		<% if account_type_text = 'Regular User' OR account_type_text = 'Manager' then %>
+	
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.runReports">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Run Reports"/>
+				</form>
+			<td align="center">
+		
+		    <td>
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.appliance_entry">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Connect Appliance to Smart Plug"/>
+				</form>
+			<td align="center">
+		
+			<td align="center">
+					<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.Smart_Plug_information">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="View Smart Plug Information"/>
+				</form>
+			</td>
+		
+		
+		<% else %>
+		
+			<td>Access to this page is denied.</td>
+		</tr>
+		<%end if; %>
+		</table><hr />
+
+
+<body>
+<!-- End Page Content -->
+<%exception when others then %>
+      <%=sqlerrm%>
+
+</body></div>
+</html>

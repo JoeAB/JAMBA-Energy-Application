@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language= "PL/SQL"%>
+<%@plsql procedure= "report2"%>
+
+<%@plsql parameter= "smart_plug_text" default="null"%>
+<%@plsql parameter="b_date" default="null"%>
+<%@plsql parameter="e_date" default="null"%>
+<%@plsql parameter="account_type_text"%>
+<%@plsql parameter="formsbutton1" default="null"%>
+
+
+<%! 
+aId IS420_TEAM14.appliance.appliance_id%Type;
+apType IS420_TEAM14.appliance_type.appliance_name%Type;
+aBrand IS420_TEAM14.appliance.brand_name%Type;
+aModel IS420_TEAM14.appliance.model%Type; 
+aYear  IS420_TEAM14.appliance.year%Type;
+aWattage number(7,4);
+kwF IS420_TEAM14.usage.total_energy_output%Type;
+kwI IS420_TEAM14.usage.total_energy_output%Type;
+aConsumed number(7,4);
+aValue number(7,2);
+tConsumed number(7,4);
+tValue number(7,2);
+kwhP IS420_TEAM14.Price.PriceKWH%Type;
+wattTotal number(16,8);
+
+Cursor aCursor(smart_plug_text IN varchar, b_date IN varchar, e_date IN varchar) IS
+SELECT DISTINCT A.appliance_id, T.appliance_name, A.brand_name, A.model, A.year, A.wattage
+FROM IS420_TEAM14.Appliance A, IS420_TEAM14.Appliance_Type T, IS420_TEAM14.Usage U
+WHERE u.smart_plug_id = smart_plug_text and T.appliance_type_id = A.appliance_type_id and U.appliance_id = A.appliance_id
+and date_time >= to_date(b_date)
+and date_time <= to_date(e_date)
+ORDER BY A.appliance_id ;
+%>
+
+<head>
+<title>Distributed Consumption By Smart-plug</title>
+</head>
+<body>
+
+<%
+	
+	
+	Select SUM(DISTINCT A.wattage)
+	INTO wattTotal 
+	FROM IS420_TEAM14.Appliance A, IS420_TEAM14.Usage U
+	WHERE U.smart_plug_id= smart_plug_text
+	and U.appliance_id = A.appliance_id
+and date_time >= to_date(b_date)
+and date_time <= to_date(e_date) ;
+	
+	SELECT PriceKWH
+	INTO kwhp
+	FROM IS420_TEAM14.Price P
+	WHERE id = 1 ;
+
+	SELECT min(total_energy_output), max(total_energy_output)
+	INTO kwI, kwF
+	FROM IS420_TEAM14.Usage U
+	WHERE U.smart_plug_id= smart_plug_text
+	and date_time >= to_date(b_date)
+	and date_time <= to_date(e_date)  ;
+
+	tConsumed := 0;
+	tConsumed := kwF - kwI;
+	tValue := tConsumed *  kwhP;
+%>
+
+
+<%if tConsumed > 0 then %>
+<table>
+<tr>
+	<td colspan="6">Total energy output for time interval: <%=tConsumed%></td>
+	
+</tr
+<tr>
+	<td colspan="6">Total cost: $ <%=tValue%></td>
+</tr>
+<%
+	Open aCursor(smart_plug_text, b_date, e_date);
+	LOOP
+	Fetch aCursor into aId, apType, aBrand, aModel, aYear, aWattage;
+	Exit when aCursor%notfound;
+	aConsumed := (aWattage/wattTotal) * tConsumed;
+	aValue := aConsumed * kwhP;
+%>
+<tr></tr>
+<tr>
+	<td><strong>Appliance ID: <%=aId%></strong></td>
+	<td>Appliance Type: <%=apType%></td>
+	<td>Appliance Brand: <%=aBrand%></td>
+	<td>Appliance Model: <%=aModel%></td>
+	<td>Appliance Year: <%=aYear%></td>
+	<td>Appliance Wattage: <%=aWattage%>w</td>
+</tr>
+<tr>
+	<td colspan="6">Estimated energy consumption for appliance over time interval: <%=aConsumed%> kws</td>
+</tr>
+<tr>
+	<td colspan="6">Estimated price of consumption for appliance over time interval: $<%=aValue%></td>
+</tr>
+<tr>
+</tr>
+<%
+END LOOP;
+Close aCursor;
+%>
+
+
+</table>
+<%
+else
+%>
+<p>No data found for the given smart plug on the selected interval. Please select a different plug or different time span.</p>
+<%
+end if;
+
+%>
+
+<!-- End Page Content -->
+<%exception when others then %>
+      <%=sqlerrm%>
+	  </div>
+</div>
+</body>
+</html>

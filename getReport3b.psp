@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<%@page language="PL/SQL"%>
+<%@plsql procedure="getReport3b"%>
+<%@plsql parameter= "smart_plug_text" default="null"%>
+<%@plsql parameter="b_date" default="null"%>
+<%@plsql parameter="e_date" default="null"%>
+<%@plsql parameter="account_type_text"%>
+<%@plsql parameter="formsbutton1" default="null"%>
+
+
+
+<%! diff_a usage.total_energy_output%type; %>
+<%! diff_b usage.total_energy_output%type; %>
+<%! total_sum usage.total_energy_output%type; %>
+<%! cursor op IS select (max(total_energy_output)-min(total_energy_output)) as difference from usage
+		where date_time between to_date(b_date) AND to_date(e_date)
+		group by smart_plug_id; %>
+<% 	
+
+	
+	select (max(total_energy_output)-min(total_energy_output)) as difference into diff_a
+		from usage
+		where smart_plug_id = smart_plug_text AND date_time between to_date(b_date) AND to_date(e_date);
+	if diff_a is null then
+		diff_a := 0;
+	end if;%>
+<% total_sum := 0;
+	open op; 
+	loop
+		fetch op into diff_b;
+		exit when op%notfound;
+		total_sum := total_sum + diff_b;
+	end loop;
+	close op;%>
+<html>
+
+
+
+
+<!-- Text Box -->
+<div  style="float:left; width:30% ;">
+<input type="hidden" id="current" value="<%=diff_a%>" />
+<input type="hidden" id="total" value="<%=total_sum%>" />
+<br><b><%=smart_plug_text %></b> used <b><%=diff_a %> KWh</b> of energy between <b><%=b_date%></b>.
+<br> All smart plugs used <b><%=total_sum%> KWh</b> of energy between <b> <%=e_date%></b>.
+</div>
+<center><div style="width:30% ;" id="chart_div"></div></center>
+<!-- End Page Content -->
+	<%exception when others then %>
+		<%=sqlerrm%>
+</div>
+</body>
+</html>

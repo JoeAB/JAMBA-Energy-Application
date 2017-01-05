@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="r1"%>
+<%@plsql parameter= "smart_plug_text" default="null"%>
+<%@plsql parameter="b_date" default="null"%>
+<%@plsql parameter="e_date" default="null"%>
+<%@plsql parameter="account_type_text"%>
+<%@plsql parameter="formsbutton1" default="null"%>
+
+
+
+<%! P_ID_TEXT  usage.smart_plug_id%Type;
+dtime  usage.date_time%type;
+min_total  usage.total_energy_output%Type;
+max_total  usage.total_energy_output%Type;
+money  price.pricekwh%type;
+priceT  price.pricekwh%type;
+kw_total  usage.total_energy_output%Type;
+date_var varchar2(20);
+
+
+cursor day_cursor(b_dateV varchar, e_dateV varchar ) is
+  select distinct to_char(date_time, 'DD-MON-YYYY')
+  from  usage
+  where date_time >= to_date(b_date)
+	and date_time <= to_date(e_date)
+  order by to_char(date_time, 'DD-MON-YYYY');
+  %>
+
+<body>
+
+
+
+<% 
+
+	
+open day_cursor(b_date, e_date);
+loop
+fetch day_cursor into date_var;
+exit when day_cursor%notfound;
+
+	select min(total_energy_output), max(total_energy_output) into min_total, max_total
+	from  usage
+	where smart_plug_id = smart_plug_text
+	and to_char(date_time, 'DD-MON-YYYY') = date_var;
+
+	select pricekwh into money
+	from  price
+	where id = 1;
+
+	kw_total := max_total - min_total;
+	priceT := kw_total * money;
+%>
+<%if priceT is null or kw_total is null then%>
+<p></p>
+<%else%>
+<p>Plug ID: <%=smart_plug_text%> | Date: <%=date_var%> | KWh: <%=kw_total%> | Cost: $<%=priceT%></p>
+
+<%end if;%>
+
+<%
+end loop;
+close day_cursor;
+%>
+
+<%exception when others then %>
+      <%=sqlerrm%>
+
+</body>
+
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="appliance_entry"%>
+<%@plsql parameter= "account_type_text" default="null"%>
+<%@plsql parameter= "formsbutton1" default="null"%>
+<head>
+<title>Appliance Entry</title>
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: white;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+.myBody{
+	padding-left: 20px;
+	padding-top: 20px;
+}
+
+</style>
+</head>
+
+<body>
+<div class="marBorder">
+   <div class="head" align="center">
+   <p align=right><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.startPage">Logout</a>
+   <p><h1>Appliance Entry</h1></p>
+		<br />
+<!-- Navigation Bar Links -->
+		<table align="center">
+		<% if account_type_text = 'Manager' then %>
+		<tr>
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.create_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Create Accounts"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.system_setup">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="System Set Up"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.unlock_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Unlock User Accounts"/>
+				</form>
+			<td align="center">
+		
+		<% end if; %>
+		<% if account_type_text = 'Regular User' OR account_type_text = 'Manager' then %>
+	
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.runReports">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Run Reports"/>
+				</form>
+			<td align="center">
+		
+		    <td>
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.appliance_entry">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Connect Appliance to Smart Plug"/>
+				</form>
+			<td align="center">
+		
+			<td align="center">
+					<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.Smart_Plug_information">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="View Smart Plug Information"/>
+				</form>
+			</td>	
+		
+		</tr>
+		<%end if; %>
+		</table><hr />
+		</div>
+<br> <!-- Start Page Content -->
+<div class="myBody">
+<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_team14.complete_appliance_entry" method="POST">
+<table>
+<tr><td><b>
+Smart Plug:</b> </td><td><select name="sp_text">
+<% for cursor_row in (select smart_plug_id from smart_plug) loop %>
+<option value="<%=cursor_row.smart_plug_id%>"> <%=cursor_row.smart_plug_id%></option>
+<% end loop; %>
+</select> </td></tr>
+<tr><td><b>Brand:</b> </td><td><input type="text" name="brand_text" value="" /></td>
+<tr><td><b>Model:</b> </td><td><input type="text" name="model_text" value="" /></td>
+<tr><td><b>Year:</b> </td><td><input type="text" name="year_text" value="" /></td>
+<tr><td><b>Wattage(W):</b> </td><td><input type="text" name="watt_text" value="" /></td>
+<tr><td><b>Appliance Type:</b> </td><td><select name="type_text">
+<% for cursor_row in (select appliance_name from appliance_type) loop %>
+<option value="<%=cursor_row.appliance_name%>"> <%=cursor_row.appliance_name%></option>
+<% end loop; %>
+</select> </td></tr></table>
+<input type="hidden" name="account_type_text" value="<%=account_type_text%>">
+<input type="submit" name="FormsButton2" value="Submit Appliance"/>
+</form>
+<!-- End Page Content -->
+	<%exception when others then %>
+		<%=sqlerrm%>
+</div>
+</body>

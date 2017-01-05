@@ -1,0 +1,252 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report4"%>
+<%@plsql parameter="account_type_text"%>
+<%@plsql parameter="formsbutton1"%>
+<%!
+fname sp_user.first_name%type;
+lname sp_user.first_name%type;
+userName sp_user.first_name%type;
+u_id sp_user.user_id%type;
+fromDate DATE;
+toDate DATE;
+cursor ucur is select first_name, last_name, user_ID from sp_User;
+%>
+<head>
+<title>Power Consumption by User</title>
+ <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script type="text/javascript">
+var req = null;
+var UID;
+
+
+function getUID(UID){
+	this.UID = UID;
+}
+
+function createRequest(){
+	try{
+		req = new XMLHttpRequest();
+	}catch(ms){
+		try{
+			req= new ActiveXObject("Msxml2.XMLHTTP");
+		}catch(otherms){
+			try{
+				req = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			catch(failed){
+				request = null;
+			}
+		}
+	}
+	if(req == null)
+		alert("Operation Failed");
+}
+function getReport(){
+	
+	createRequest();
+	sD = document.getElementById("start").value;
+	eD = document.getElementById("stop").value;
+	aT = document.getElementById("account_type_text").value;
+
+	var url = "http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.report4_ack";
+	req.open("POST",url,true);
+	req.onreadystatechange = updatePage;
+	req.send("u_id=" + escape(UID) + "&b_date="+ escape(sD)+"&e_date="+ escape(eD)
+	+ "&account_type_text="+ escape(aT));
+}
+function updatePage(){
+	if(req.readyState == 4){
+		if(req.status == 200){
+			var returnValue = req.responseText;
+			document.getElementById("reportArea").innerHTML = returnValue;
+			drawChart();
+		}
+		else
+			alert("Failure");
+	}
+}
+
+</script>
+    <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.charts.load('current', {'packages':['corechart']});
+
+   
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawChart() {
+
+		var totalUser = document.getElementById("user").value;
+		var totalAll = document.getElementById("total").value;
+		totalUser = parseFloat(totalUser);
+		totalAll = parseFloat(totalAll) - totalUser;
+	  
+        // Create the data table.
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'User');
+        data.addColumn('number', 'Consumption');
+        data.addRows([
+          ['Current User', totalUser],
+          ['Other Users', totalAll],
+      
+        ]);
+
+        // Set chart options
+        var options = {'title':'Percent Consumption of User',
+                       'width':400,
+                       'height':300};
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: white;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+.myBody {
+	padding-top:10px;
+	padding-left:20px;
+}
+
+</style>
+</head>
+<body>
+<div class="marborder">
+	<div class="head" align="center"><p align=right><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.startPage">Logout</a>
+	<p><h1>Report 4: Power Consumption by User</h1></p>
+
+
+<table align="center">
+		<% if account_type_text = 'Manager' then %>
+		<tr>
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.create_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Create Accounts"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.system_setup">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="System Set Up"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.unlock_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Unlock User Accounts"/>
+				</form>
+			<td align="center">
+		
+		<% end if; %>
+		<% if account_type_text = 'Regular User' OR account_type_text = 'Manager' then %>
+	
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.runReports">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Run Reports"/>
+				</form>
+			<td align="center">
+		
+		    <td>
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.appliance_entry">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Connect Appliance to Smart Plug"/>
+				</form>
+			<td align="center">
+		
+			<td align="center">
+					<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.Smart_Plug_information">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="View Smart Plug Information"/>
+				</form>
+			</td>
+		
+		
+		<% else %>
+		
+			<td>Access to this page is denied.</td>
+		</tr>
+		<%end if; %>
+		</table><hr /></div>
+
+<div class="myBody">
+<%if account_type_text='Manager' Then%>
+<%open ucur;%>
+<form method="Post">
+<input type="hidden" id="account_type_text" name="account_type_text" value="<%=account_type_text%>"/>
+Select user: <select name="u_id" onchange="getUID(this.value);">
+			    <option disabled selected value> -- select an option -- </option>
+<%
+Loop%>
+<%
+	Fetch ucur into fname, lname, u_id;
+	Exit when ucur%notfound;
+	username := concat(fname, ' ' || lname);
+%>
+	<option value="<%=u_id%>"><%=username%></option>
+<%
+End Loop;
+%>
+
+</select>
+<br>
+<br />
+<br />
+Format example: 10-Mar-2016
+<br />
+<br />
+
+Beginning Date (DD-MON-YYYY): <input type ="text" id="start" name="b_date" value="" size="11" maxlength="11"><br><br>
+Ending Date(DD-MON-YYYY): <input type="text" id="stop" name="e_date" value="" size="11" maxlength="11"><br><br>
+<input type = "button" name = "Report1Button" value = "Retrieve Data" onclick="getReport();"/>
+</form>
+<span id="reportArea"> </span>
+</div>
+<!-- In case user is not signed or not a manager -->
+
+<%Close ucur;%>
+<%else%>
+<p>You do not have permission to access this report.</p>
+<%end if;%>
+
+
+</div>
+</body>
+<%exception when others then %>
+<%=sqlerrm%>
+
+</html>

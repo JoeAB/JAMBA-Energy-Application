@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language= "PL/SQL"%>
+<%@plsql procedure= "get_user"%>
+<head>
+<title>Recover Password</title>
+<script type="text/javascript">
+var req = null;
+var varId;
+function createRequest(){
+	try{
+		req = new XMLHttpRequest();
+	}catch(ms){
+		try{
+			req= new ActiveXObject("Msxml2.XMLHTTP");
+		}catch(otherms){
+			try{
+				req = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			catch(failed){
+				request = null;
+			}
+		}
+	}
+	if(req == null)
+		alert("Operation Failed");
+}
+
+function getQuest(value){
+	createRequest();
+	varId = value;
+	var url = "http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.ask_security_question";
+	req.open("POST",url,true);
+	req.onreadystatechange = updatePage;
+	req.send("sp_user_id_text=" + escape(varId));
+}
+function updatePage(){
+	if(req.readyState == 4){
+		if(req.status == 200){
+			var returnValue = req.responseText;
+			document.getElementById("questArea").innerHTML = returnValue;
+		}
+		else
+			alert("Failure");
+	}
+
+}
+function checkQuest(){
+	createRequest();
+	var answ = document.getElementById("answer").value;
+	var url = "http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.passwordR";
+	req.open("POST",url,true);
+	req.onreadystatechange = updatePage2;
+	req.send("sp_user_id_text=" + escape(varId) + "&quest_answer_text=" +escape(answ));
+
+}
+function updatePage2(){
+	if(req.readyState == 4){
+		if(req.status == 200){
+			var returnValue = req.responseText;
+			document.getElementById("validate").innerHTML = returnValue;
+		}
+		else
+			alert("Failure");
+	}
+	lock();
+
+}
+function lock(){
+	var exists = document.getElementById("locked");
+	if(exists != null){
+		var lockText ="Your account has been locked";
+		document.getElementById("questArea").innerHTML = lockText;
+	}
+}
+</script>
+
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: red;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+.myBody{
+	padding-left: 20px;
+	padding-top: 20px;
+}
+
+</style>
+</head>
+<body>
+<div class="marBorder">
+   <div class="head" align="center">
+   <p><h1>Password Recovery</h1></p>
+   <a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.startPage">Home</a>
+		<br />
+<form method="POST">
+<br />
+<hr /></div>
+<br> <!-- Start Page Content -->
+<!--  choices in drop down list -->
+<div class="myBody">
+Select your user ID: <select name="sp_user_id_text" id="sp_user_id_text" onchange="getQuest(this.value);">
+<% for cursor_row in (select * from sp_user order by user_id) loop %>
+<option " value="<%=cursor_row.User_id%>"> <%=cursor_row.User_id%> - <%=cursor_row.first_name%> <%=cursor_row.last_name%></option>
+<% end loop; %>
+</select> <br /><br />
+<span id="questArea"> </span>
+
+<!-- End Page Content -->
+</div>
+</body>
+</html>

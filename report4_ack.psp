@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report4_ack"%>
+<%@plsql parameter="u_id"%>
+<%@plsql parameter="b_date"%>
+<%@plsql parameter="e_date"%>
+<%@plsql parameter="account_type_text"%>
+<%@plsql parameter="Submit" default="null"%>
+
+<%!
+fname sp_user.first_name%type;
+lname sp_user.last_name%type;
+uniquePowerUser number := 0;
+totalPowerUser number:=0;
+totalPowerAll number:=0;
+totalPercent number:=0;
+kwI usage.total_energy_output%type ;
+kwF usage.total_energy_output%type ;
+nkwI usage.total_energy_output%type;
+nkwF usage.total_energy_output%type;
+user_num number;
+
+cursor ncur IS
+	SELECT first_name, last_name
+	FROM sp_user su
+	WHERE u_id = su.user_id;
+
+cursor curUser IS
+	SELECT DISTINCT user_ID
+	FROM sp_user;
+%>
+
+
+<head><title>Power Consumption by User Acknowledgement</title>
+
+</head>
+<body>
+<%
+	SELECT min(total_energy_output), max(total_energy_output)
+	INTO kwI, kwF
+	FROM usage u, smart_plug sp
+	WHERE u_id = sp.user_id
+	AND sp.smart_plug_id = u.smart_plug_id
+	AND  to_date(b_date) <= u.date_time
+	AND  to_date(e_date) >= u.date_time;
+
+	totalPowerUser := kwF - kwI;
+%>
+<%
+	open ncur;
+	fetch ncur into fname, lname;
+%>
+<div class="mybody">
+<p>User: <%=fname%> <%=lname%><br>
+Total Power Consumed by user: <%if totalPowerUser is null or totalPowerUser <= 0 then%>0W<%else%><%=totalPowerUser%>W<%end if;%><br>
+<%
+close ncur;
+%>
+<%
+open curUser;
+LOOP
+	FETCH curUser into user_num;
+	exit when curUser%notfound;
+	SELECT MIN(total_energy_output), MAX(total_energy_output)
+	INTO nkwI, nkwF
+	FROM usage u, smart_plug sp
+	WHERE sp.user_id = user_num
+	AND u.smart_plug_id = sp.smart_plug_id
+  AND  to_date(b_date) <= u.date_time
+	AND  to_date(e_date) >= u.date_time;
+
+	if nkwF is not null and nkwI is not null then
+		uniquePowerUser := nkwF - nkwI;
+		totalPowerAll := totalPowerAll + uniquePowerUser;
+	end if;
+END LOOP;
+close curUser;
+%>
+<div  style="float:left; width:30% ;">
+<input type="hidden" id="user" value="<%=totalPowerUser%>" />
+<input type="hidden" id="total" value="<%=totalPowerAll%>" />
+<p>Total Power Consumption of all users from <%=b_date%> to <%=e_date%> is <%=totalPowerAll%>W</p>
+<%totalPercent := Round(totalPowerUser/totalPowerall,4) * 100;%>
+<p>User's consumption as a percentage of the total consumption: <%if totalPercent is null or totalPercent <= 0 then%>0%<%else%><%=totalPercent%>%<%end if;%></p>
+</div>
+<center><div style="width:30% ;" id="chart_div"></div></center>
+<%exception when others then %>
+	<%=sqlerrm%>
+</div>
+</div>
+</body>
+</html>

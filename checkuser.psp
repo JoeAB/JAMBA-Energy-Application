@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="checkuser"%>
+<%@plsql parameter="u_email" default="null"%>
+<%@plsql parameter="p_word" default="null"%>
+<%@plsql parameter="formsbutton1" default="null"%>
+
+
+<%! ACCTTYPE  sp_user.user_type%Type;
+acounter  SP_USER.ACCESSIBILITY_COUNTER%type;
+P_WORD_TEXT  sp_user.user_password%Type;%>
+
+<head>
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: white;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+.myBody{
+	padding-top: 20px;
+	padding-left: 20px;
+}
+</style>
+<title>Check User</title>
+</head>
+
+<body>
+<div class="marBorder">
+		<div class="head" align="center"><h1>JAMBA User Check</h1>
+		
+		<hr />
+		</div>
+<div class="myBody">
+<%SELECT USER_PASSWORD, USER_TYPE, ACCESSIBILITY_COUNTER INTO P_WORD_TEXT, ACCTTYPE, ACOUNTER
+FROM  SP_USER
+WHERE user_email = u_email;%>
+
+<% if p_word = p_word_text and acounter < 2 then%>
+	<p>User Access Granted: <%=u_email%></p>
+	<p>User Account Type: <%=ACCTTYPE%></p>
+	<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.landing" method="post">
+	<input type="hidden" name="account_type_text" value="<%=ACCTTYPE%>"/>
+	<input type="submit" name="formsbutton1" value="Continue to main site"/>
+	</form>
+	
+	<%UPDATE  SP_USER U 
+	SET ACCESSIBILITY_COUNTER = 0
+	WHERE U.USER_EMAIL = U_EMAIL;%>
+	
+	
+	<%else%>
+	<%if acounter = 2 then%>
+	<p>ACCOUNT LOCKED, CONTACT THE I.T. DEPARTMENT FOR ASSISTANCE</p>
+	<p><u>Contact Info:</u></p>
+	<p>JAMBA INC.</p>
+	<p>1000 Hilltop Circle</p>
+	<p>Catonsville, MD 21228</p>
+	<p>-----------------------</p>
+	<p>Telephone: 123-456-7890</p>
+	<p>Email: jamba@umbc.edu</p>
+	
+		<%else%>
+			<p>User name and/or Password is <font color = "red">incorrect</font>, please re-enter data by clicking <a href="http://oracle.is.umbc.edu:8080/classpsp/ enter_user">here</a>.</p>
+			<%acounter := acounter + 1;%>
+			
+			<%UPDATE  SP_USER U 
+			SET ACCESSIBILITY_COUNTER = acounter
+			WHERE U.USER_EMAIL = U_EMAIL;%>
+		
+		<%end if;%>
+	<%end if;%>
+</body>
+<%exception when others then %>
+      <%=sqlerrm%>
+</div>
+</div>
+</html>
+

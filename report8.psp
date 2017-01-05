@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report8"%>
+<%@plsql parameter="formsbutton1"%>
+<%@plsql parameter="account_type_text"%>
+<%!dt varchar(25);
+   tm varchar(25);
+   prev_time varchar(25);
+   Start_time varchar(25);
+   End_time varchar(25);
+   max_energy number := 0;
+   curr_energy number := 0;
+   Hold_id usage.event_id%type;
+   countMorning number;
+   countAfter number;
+   countEven number;
+   countNight number;
+
+  cursor c1 is
+  select distinct to_char(date_time, 'MM-DD-YYYY')
+  from  usage
+  order by  to_char(date_time, 'MM-DD-YYYY') ;
+
+  cursor c2(currentDate varchar) is
+  select distinct to_char(date_time, 'hh12:mi AM'), event_id
+  from  usage
+  where to_char(date_time, 'MM-DD-YYYY')= currentDate
+  order by event_id asc;%>
+  <head>
+  <title>Report 8</title>
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: white;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+
+.myBody{
+	padding-top: 20px;
+	padding-left: 20px;
+	padding-bottom: 20px;
+}
+
+</style>
+ <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+ <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+ <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.load("visualization", "1", {packages:["corechart"]});
+		google.setOnLoadCallback(drawChart);
+
+   
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawChart() {
+
+		var morning = parseInt(document.getElementById("morn").value);
+		var after = parseInt(document.getElementById("after").value);
+		var evening = parseInt(document.getElementById("even").value);
+		var night = parseInt(document.getElementById("night").value);
+		
+	  
+        // Create the data table.
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Time');
+        data.addColumn('number', 'Count');
+        data.addRows([
+          ['Morning', morning],
+          ['Afternoon', after],
+			['Evening', evening],
+			['Night', night],
+        ]);
+
+        // Set chart options
+        var options = {'title':'Times of Day the Most Energy is Used',
+                       'width':500,
+                       'height':400};
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+
+
+
+</head>
+<body >
+<% if account_type_text = 'Manager' then%>
+
+<div class="marBorder">
+		<div class="head" align="center"><p align=right><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.startPage">Logout</a>
+		<h1>Report 8: Most Active Time of Day</h1>
+<table align="center">
+		<% if account_type_text = 'Manager' then %>
+		<tr>
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.create_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Create Accounts"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.system_setup">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="System Set Up"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.unlock_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Unlock User Accounts"/>
+				</form>
+			<td align="center">
+		
+		<% end if; %>
+		<% if account_type_text = 'Regular User' OR account_type_text = 'Manager' then %>
+	
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.runReports">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Run Reports"/>
+				</form>
+			<td align="center">
+		
+		    <td>
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.appliance_entry">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Connect Appliance to Smart Plug"/>
+				</form>
+			<td align="center">
+		
+			<td align="center">
+					<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.Smart_Plug_information">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="View Smart Plug Information"/>
+				</form>
+			</td>
+		
+		
+		<% else %>
+		
+			<td>Access to this page is denied.</td>
+		</tr>
+		<%end if; %>
+		</table><hr />
+		</div>
+<div class="myBody">
+
+<table  style="float:left; width:30% ;">
+<%
+countMorning := 0;
+countAfter := 0;
+countEven := 0;
+countNight := 0;
+open c1;
+loop
+   fetch c1 into dt;
+   exit when c1%notfound;
+   open c2(dt);
+   loop
+   exit when c2%notfound;   
+   fetch c2 into tm, hold_id;
+
+      select sum(instantaneous_power) into curr_energy
+      from  usage 
+      where to_char(date_time, 'MM-DD-YYYY')= dt
+      and to_char(date_time, 'hh12:mi AM') = tm;
+       
+   
+       if curr_energy > max_energy then
+          max_energy := curr_energy;
+          end_time:= tm;
+          start_time:= prev_time;
+       end if;
+
+       prev_time := tm;
+   end loop;
+   close c2;%>
+  <tr><td><b><%=dt%>: </b></td></tr>
+  <tr><td><%=start_time%> - <%=end_time%></td></tr> 
+  <%    max_energy := 0;
+		
+		if to_date(end_time, 'hh12:mi AM' ) >=  to_date('05:00 AM', 'hh12:mi AM' ) and to_date(end_time, 'hh12:mi AM' ) < to_date('12:00 PM', 'hh12:mi AM' ) then
+			countMorning := countMorning + 1;
+		elsif to_date(end_time, 'hh12:mi AM' ) >= to_date('12:00 PM', 'hh12:mi AM' ) and to_date(end_time, 'hh12:mi AM' ) < to_date('06:00 PM', 'hh12:mi AM' ) then
+			countAfter := countAfter + 1;
+		elsif to_date(end_time, 'hh12:mi AM' ) >= to_date('06:00 PM', 'hh12:mi AM' ) and to_date(end_time, 'hh12:mi AM' ) < to_date('09:00 PM', 'hh12:mi AM' ) then
+			countEven	:= countEven + 1;
+		else
+			countNight := countNight + 1;
+		end if;
+	curr_energy := 0;%>
+<%end loop;
+  close c1;%>
+  </table>
+  <center><div id="chart_div" style="width:30% ;"><center>
+  <input type="hidden" id="morn" value="<%=countMorning%>"/>
+  <input type="hidden" id="after" value="<%=countAfter%>"/>
+  <input type="hidden" id="even" value="<%=countEven%>"/>
+  <input type="hidden" id="night" value="<%=countNight%>"/>
+  
+<%else%>
+<p>Access to this page is denied.</p>
+<%end if;%>
+<%exception when others then %>
+<%=sqlerrm%>
+</div>
+</div>
+</body>
+</html>
+

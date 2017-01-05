@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language= "PL/SQL"%>
+<%@plsql procedure= "startPage"%>
+
+
+
+<head>
+<title>Team JAMBA Home</title>
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: white;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+
+</style>
+
+</head>
+<body>
+<div class="marBorder">
+		<div class="head" align="center"><p><h1>JAMBA Energy</h1></p>
+		<br />
+		<p><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.create_user" >Create An Account</a> | 
+			<a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.enter_user">Login</a></p>
+		<hr /></div>
+
+		<!-- End Page Content -->
+		<%exception when others then %>
+			  <%=sqlerrm%>
+	</div>
+</div>
+	  
+</body>
+</html>

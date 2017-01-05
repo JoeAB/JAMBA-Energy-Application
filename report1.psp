@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!-- Report 1: Cumulative Daily Consumption by smart-plug. Show KWh consumed by the smart-plug of a user and all its connected appliances as follows:
+◦Select a smart-plug from a drop-down list. 
+◦Select a time interval (begin-date and end-date) to measure consumption. Once this is done, all information about this plug should be shown as follows: 
+▪For each day in the user selected interval calculate the total consumption of KWh consumed by all appliances connected to this smart-plug in each day, and the corresponding 
+$ amount (one line per day – do not show dates with no data). Do not distinguish among different appliance types connected to this smart-plug. 
+◦Stored Proc: Daily smart-plug consumption (executed by: any user)
+ -->
+
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report1"%>
+<%@plsql parameter="account_type_text" default="null"%>
+<%@plsql parameter="Report1Button" default="null"%>
+<%@plsql parameter="formsbutton1" default="null"%>
+
+
+<body>
+<head>
+<script type="text/javascript">
+var req = null;
+var varId;
+var sP;
+
+function getSP(sP){
+	this.sP = sP;
+}
+
+function createRequest(){
+	try{
+		req = new XMLHttpRequest();
+	}catch(ms){
+		try{
+			req= new ActiveXObject("Msxml2.XMLHTTP");
+		}catch(otherms){
+			try{
+				req = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			catch(failed){
+				request = null;
+			}
+		}
+	}
+	if(req == null)
+		alert("Operation Failed");
+}
+function getReport(){
+	
+	createRequest();
+	sD = document.getElementById("start").value;
+	eD = document.getElementById("stop").value;
+	aT = document.getElementById("account_type_text").value;
+
+	var url = "http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.r1";
+	req.open("POST",url,true);
+	req.onreadystatechange = updatePage;
+	req.send("smart_plug_text=" + escape(sP) + "&b_date="+ escape(sD)+"&e_date="+ escape(eD)
+	+ "&account_type_text="+ escape(aT));
+}
+function updatePage(){
+	if(req.readyState == 4){
+		if(req.status == 200){
+			var returnValue = req.responseText;
+			document.getElementById("reportArea").innerHTML = returnValue;
+		}
+		else
+			alert("Failure");
+	}
+}
+
+</script>
+<style>
+.head {
+	background-color:  #0047b3;
+	padding:0;
+	color: white;
+	border-bottom: 10px #003380 solid;
+	border-top: 10px #003380 solid;
+}
+body{
+
+	background-color:  white;
+	margin:0;
+}
+a:hover{
+	color:gray;
+}
+a{
+	color: white;
+}
+.marBorder{
+	border: 50px #003380 solid;
+	padding: 0px;
+	width:95%;
+	height:100%;
+	margin: 0px;
+}
+.myBody{
+	padding-top: 20px;
+	padding-left: 20px;
+}
+</style>
+<title>Report 1</title></head>
+<div class="marBorder">
+		<div class="head" align="center">
+		<p align=right><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.startPage">Logout</a>
+		<p><h2>Report 1: Daily smart-plug consumption</h2>
+<table align="center">
+		<% if account_type_text = 'Manager' then %>
+		<tr>
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.create_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Create Accounts"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.system_setup">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="System Set Up"/>
+				</form>
+			</td>
+		
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.unlock_user">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Unlock User Accounts"/>
+				</form>
+			<td align="center">
+		
+		<% end if; %>
+		<% if account_type_text = 'Regular User' OR account_type_text = 'Manager' then %>
+	
+			<td align="center">
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.runReports">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Run Reports"/>
+				</form>
+			<td align="center">
+		
+		    <td>
+				<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.appliance_entry">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="Connect Appliance to Smart Plug"/>
+				</form>
+			<td align="center">
+		
+			<td align="center">
+					<form method="POST" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.Smart_Plug_information">
+					<input type="hidden" name="account_type_text" value="<%=account_type_text%>"/>
+					<input type="submit" name="formsbutton1" value="View Smart Plug Information"/>
+				</form>
+			</td>
+		
+		
+		<% else %>
+		
+			<td>Access to this page is denied.</td>
+		</tr>
+		<%end if; %>
+		</table><hr />
+		</div>
+<br />
+
+<div class="myBody">
+<%if account_type_text='Manager' or account_type_text='Regular User' then%>
+<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM14.r1" method = "post">
+<input type="hidden" id="account_type_text" name="account_type_text" value="<%=account_type_text%>"/>
+Select Plug ID: <select name="p_id" onchange="getSP(this.value);">
+			    <option disabled selected value> -- select an option -- </option>
+<% for cursor_row in (select smart_plug_id from smart_plug) loop %>
+<option value ="<%=cursor_row.smart_plug_id%>"> 
+<%=cursor_row.smart_plug_id%> 
+<% end loop; %>
+</select>
+<br />
+<br />
+Format example: 10-Mar-2016
+<br />
+<br />
+
+Beginning Date (DD-MON-YYYY): <input type ="text" id="start" name="b_date" value="" size="11" maxlength="11"><br><br>
+Ending Date(DD-MON-YYYY): <input type="text" id="stop" name="e_date" value="" size="11" maxlength="11"><br><br>
+<input type = "button" name = "Report1Button" value = "Retrieve Data" onclick="getReport();"/>
+</form>
+<%else%>
+<p>You dont have access to this report</p>
+<%end if;%>
+<span id="reportArea"> </span>
+<%exception when others then %>
+      <%=sqlerrm%>
+</div>
+</div>
+</body>
+
+</html>
